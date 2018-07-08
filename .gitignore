@@ -3,4 +3,4 @@ Outputs/RawData.csv
 Outputs/processed.tsv
 Inputs/Diary*.csv
 import.sh
-.snakemake*
+.snakemake/*
