@@ -1,4 +1,3 @@
-
 rule all:
 	input:
 		"Outputs/RawData.csv",
@@ -7,7 +6,7 @@ rule all:
 
 rule importCSV:
 	input:
-		CSV = "Inputs/DiaryU104408808.csv",
+		CSV = "Inputs/test.csv",
 	output:
 		"Outputs/RawData.csv",
 	shell:
@@ -24,7 +23,6 @@ rule preprocess:
 
 rule R:
 	input:
-#		data = "Outputs/processed.tsv"
 		script = "bg-calc.R"
 	output:
 		"Outputs/bg-graph.png"
