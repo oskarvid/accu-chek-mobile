@@ -5,13 +5,17 @@ for (i in 1:3){
   data2[,i] <- rev(data2[,i])
 }
 
-data2len <- length(data2[,1])
-png('Outputs/bg-graph.png', width = 1920, height = 1080, units = "px")
+png('Outputs/bg-graph.png', width = 1920, height = 1080)
 plot(data2[,3], type = "o", xlab="Date", ylab="mmol/L", xaxt="n", yaxt="n")
 
+data2len <- length(data2[,1])
 grid(nx = data2len, ny = 20, col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = F)
 
-legend(1, 9, legend=c("Normal Range", "Average"),
+upper <- range(data2[,3])
+
+position = 0.9*upper
+position
+legend(1, position[2], legend=c("Normal Range", "Average"),
        col=c("red", "blue"), lty=1, cex=0.8, bg = "white")
 
 split_date = as.Date(data2[,1], "%d.%m.%Y") -min(as.Date(data2[,1], "%d.%m.%Y"))
@@ -31,8 +35,6 @@ for (i in 1:data2len) {
   lower = lower+1
 }
 
-upper <- range(data2[,3])
-upper
 yscale2 <- seq(from = 1, to = upper[2], by = 0.2)
 axis(side = c(2, 4), at = yscale2)
 
