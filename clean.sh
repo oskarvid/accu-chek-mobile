@@ -1,1 +1,1 @@
-rm Outputs/* 
+rm -rf Outputs/* .snakemake
