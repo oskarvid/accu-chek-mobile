@@ -36,7 +36,8 @@ for (i in 1:data2len) {
 }
 
 yscale2 <- seq(from = 1, to = upper[2], by = 0.2)
-axis(side = c(2, 4), at = yscale2)
+axis(side = 2, at = yscale2)
+axis(side = 4, at = yscale2)
 
 abline(a = 0, b = 0, h = c(4,6), v = NULL, reg = NULL,
        coef = NULL, untf = FALSE, col = "red")
