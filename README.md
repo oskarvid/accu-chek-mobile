@@ -2,8 +2,8 @@
 For analysis of blood glucose data from an Accu-Chek Mobile.
 
 ## Features
-Each day has its own color to make it easier to differentiate between one day and the next.  
-If the user correctly marks each blood glucose measurement it will show in the graph, see the sample graph for an example. This makes it easier to spot potential patterns.
+1. Each day has its own color to make it easier to differentiate between one day and the next.  
+2. If the user correctly marks each blood glucose measurement it will show in the graph, see the sample graph for an example. This makes it easier to spot potential patterns.
 
 ![Example graph](https://raw.githubusercontent.com/oskarvid/accu-chek-mobile/master/.sample-graph.png)
 This example graph was generated with random data.
