@@ -1,11 +1,15 @@
 # accu-chek-mobile
 For analysis of blood glucose data from an Accu-Chek Mobile.
 
+## Features
+Each day has its own color to make it easier to differentiate between one day and the next.  
+If the user correctly marks each blood glucose measurement it will show in the graph, see the sample graph for an example. This makes it easier to spot potential patterns.
+
 ![Example graph](https://raw.githubusercontent.com/oskarvid/accu-chek-mobile/master/.sample-graph.png)
-This graph was generated with random data.
+This example graph was generated with random data.
 
 ## Dependencies
-Docker: https://docs.docker.com/install/
+Install instructions for docker: https://docs.docker.com/install/
 
 ## Instructions
 1. Put your csv file in the Inputs directory  
