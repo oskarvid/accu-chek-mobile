@@ -5,8 +5,9 @@ For analysis of blood glucose data from an Accu-Chek Mobile.
 1. Each day has its own color to make it easier to differentiate between one day and the next.  
 2. If the user correctly marks each blood glucose measurement it will show in the graph, see the sample graph for an example. This makes it easier to spot potential patterns.
 
-![Example graph](https://raw.githubusercontent.com/oskarvid/accu-chek-mobile/master/.sample-graph.png)
-This example graph was generated with random data.
+![Example graph1](https://raw.githubusercontent.com/oskarvid/accu-chek-mobile/master/.sample-graph.png)
+![Example graph2](https://raw.githubusercontent.com/oskarvid/accu-chek-mobile/master/.sample-24h-bg-graph.png)
+These example graphs were generated with different random data.
 
 ## Dependencies
 Install instructions for docker: https://docs.docker.com/install/
