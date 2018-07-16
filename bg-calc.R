@@ -113,6 +113,7 @@ for (i in 1:length(srtd)) {
   x[i] <- grep(srtd[i], data4[,2])
 }
 
+
 # Define image size
 wd <- (length(data2[,1])/100)*1920
 
@@ -120,12 +121,16 @@ wd <- (length(data2[,1])/100)*1920
 png('Outputs/24h-bg-graph.png', width = wd, height = 1080)
 
 # Create plot
-plot(as_date(data4[x,2], origin = Sys.Date()), data4[x,3], pch = as.numeric(data4[x,5]), cex = 2)
+plot(as_date(data4[x,2], origin = Sys.Date()), data4[x,3],
+     xlab="Time of day", ylab="mmol/L", pch = as.numeric(data4[x,5]), cex = 2, yaxt = "n")
 legend(as_date(data4[x,2], origin = Sys.Date())[1], 10, legend=c("Other",
                                                                  "Before meal", 
                                                                  "After meal", 
                                                                  "Missing data"),
        col=c("black", "black", "black", "black"), cex=1.2, pch = c(1, 2, 3, 0))
+yscale2 <- seq(from = 1, to = upper[2], by = 0.2)
+axis(side = 2, at = yscale2)
+axis(side = 4, at = yscale2)
 
 # Write image to file
 dev.off()
