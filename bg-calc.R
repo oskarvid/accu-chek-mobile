@@ -1,6 +1,6 @@
-#install.packages("lubridate")
+install.packages("lubridate")
 library("lubridate")
-data2 <- read.table("Outputs/processed.tsv", header = F, sep="\t")
+data2 <- read.table("/home/oskar/01-workspace/00-temp/accu-chek-mobile/Outputs/processed.tsv", header = F, sep="\t")
 dim(data2)
 
 # Column 5 is empty by default, so it will get all values from column 7 to 9 later, but first populate it with 0's!
@@ -41,26 +41,46 @@ for (i in 1:datelen){
 # Calculate dynamic png width, 100 values equals 1920x1080 size. Height is static.
 wd <- (length(data2[,1])/100)*1920
 
+# Create fake data for sample graphs
+#len <- length(data2[,2])
+#data2[,3] <- round(runif(len, 3.0, 10.5), digits = 1)
+#data2[,5] <- round(runif(len, 0, 3), digits = 0)
+#head(data2)
+
 # Define image output directory and size
-png('Outputs/bg-graph.png', width = wd, height = 1080)
+png('/home/oskar/01-workspace/00-temp/accu-chek-mobile/Outputs/bgg-graph.png', width = wd, height = 1080)
+adjustcolor(palette(c("black", "white", "green", "blue", "magenta")), alpha.f = 0.3)
+plot(data2[,3], type = "n", xlab="Date", ylab="mmol/L", xaxt="n", yaxt="n")
 
-# Define the colors
-palette(c("black", "red", "green", "blue", "magenta"))
+#plot(dat$X,dat$Y,pch=as.integer(dat$att1),col=as.integer(dat$att1), type = "o")
 
-# Create the plot
-plot(data2[,3], type = "o", xlab="Date", ylab="mmol/L", xaxt="n", yaxt="n", 
-     pch=as.numeric(data2[,5]), col=split_date, cex = 3)
+colors1 <- c("#0000004D", "#FFFFFF4D")
+colors2 <- 0
+n=1
+for (j in 1:200){
+  for (i in 1:2){
+    colors2[n] <- colors1[i]
+    n = n + 1
+  }
+}
 
-# Make grid for plot
+lower = 1
+upper = 1
+for (i in 1:length(table(as.Date(data2$V1, format="%d.%m.%Y")))) {
+  upper = table(as.Date(data2$V1, format="%d.%m.%Y"))[[i]] + upper
+  rect(lower, 1, upper, 100, col = colors2[i])
+  lower = table(as.Date(data2$V1, format="%d.%m.%Y"))[[i]] + lower
+}
+
+lines(data2[,3], pch=as.numeric(data2[,5]), cex = 1.2, type = "o", lwd = 1, col = "black")
+
+
 data2len <- length(data2[,1])
 grid(nx = data2len, ny = (data2len/2), col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = F)
 
-# Create dynamic placement of legend
 upper <- range(data2[,3])
 position = 0.94*upper
-position
 
-# Make legend
 legend(-2, position[2], legend=c("Normal Range", 
                                  "Average", 
                                  "Median", 
@@ -71,25 +91,21 @@ legend(-2, position[2], legend=c("Normal Range",
        col=c("red", "blue", "green", "black", "black", "black", "black"), 
        lty=c(1, 1, 1, NA, NA, NA, NA), cex=1.2, bg = "white", pch = c(NA, NA, NA, 1, 2, 3, 0))
 
-
-# Print the time and date in specific color to make it easier to identify specific days
 lower = 1
 for (i in 1:data2len) {
   
   text(c(lower:lower), par("usr")[3], labels = data2[,1][i], srt = 45,
-       adj = c(1.1,1.1), xpd = TRUE, cex=0.8, col = split_date[[i]])
+       adj = c(1.1,1.1), xpd = TRUE, cex=0.8, col = "black")
   text(c(lower:lower), par("usr")[4], labels = data2[,2][i], srt = 45, 
-       adj = c(0.01,0.01), xpd = TRUE, cex=0.8, col = split_date[[i]])
+       adj = c(0.01,0.01), xpd = TRUE, cex=0.8, col = "black")
   
   lower = lower+1
 }
 
-# Create the y-scale, place it on the left and right sides
 yscale2 <- seq(from = 1, to = upper[2], by = 0.2)
 axis(side = 2, at = yscale2)
 axis(side = 4, at = yscale2)
 
-# Create lines for upper and lower blood glucose reference values as well as mean and median bg values
 abline(a = 0, b = 0, h = c(4,6), v = NULL, reg = NULL,
        coef = NULL, untf = FALSE, col = "red")
 abline(a = 0, b = 0, h = mean(data2[,3]), v = NULL, reg = NULL,
@@ -97,7 +113,6 @@ abline(a = 0, b = 0, h = mean(data2[,3]), v = NULL, reg = NULL,
 abline(a = 0, b = 0, h = median(data2[,3]), v = NULL, reg = NULL,
        coef = NULL, untf = FALSE, col = "green")
 
-# Write image to file
 dev.off()
 
 ## Make second plot
@@ -118,7 +133,7 @@ for (i in 1:length(srtd)) {
 wd <- (length(data2[,1])/100)*1920
 
 # Define image name and dimensions
-png('Outputs/24h-bg-graph.png', width = wd, height = 1080)
+png('/home/oskar/01-workspace/00-temp/accu-chek-mobile/Outputs/24h-bg-graph.png', width = 1920, height = 1080)
 
 # Create plot
 plot(as_date(data4[x,2], origin = Sys.Date()), data4[x,3],
