@@ -1,7 +1,7 @@
-install.packages("lubridate")
+#install.packages("lubridate")
 library("lubridate")
-data2 <- read.table("/home/oskar/01-workspace/00-temp/accu-chek-mobile/Outputs/processed.tsv", header = F, sep="\t")
-dim(data2)
+data2 <- read.table("Outputs/processed.tsv", header = F, sep="\t")
+#dim(data2)
 
 # Column 5 is empty by default, so it will get all values from column 7 to 9 later, but first populate it with 0's!
 data2[,5][is.na(data2[,5])] <- 0
@@ -43,16 +43,14 @@ wd <- (length(data2[,1])/100)*1920
 
 # Create fake data for sample graphs
 #len <- length(data2[,2])
-#data2[,3] <- round(runif(len, 3.0, 10.5), digits = 1)
+#data2[,3] <- round(rnorm(len, m = 5, sd = 1), digits = 1)
 #data2[,5] <- round(runif(len, 0, 3), digits = 0)
 #head(data2)
 
 # Define image output directory and size
-png('/home/oskar/01-workspace/00-temp/accu-chek-mobile/Outputs/bgg-graph.png', width = wd, height = 1080)
+png('Outputs/bg-graph.png', width = wd, height = 1080)
 adjustcolor(palette(c("black", "white", "green", "blue", "magenta")), alpha.f = 0.3)
 plot(data2[,3], type = "n", xlab="Date", ylab="mmol/L", xaxt="n", yaxt="n")
-
-#plot(dat$X,dat$Y,pch=as.integer(dat$att1),col=as.integer(dat$att1), type = "o")
 
 colors1 <- c("#0000004D", "#FFFFFF4D")
 colors2 <- 0
@@ -73,8 +71,6 @@ for (i in 1:length(table(as.Date(data2$V1, format="%d.%m.%Y")))) {
 }
 
 lines(data2[,3], pch=as.numeric(data2[,5]), cex = 1.2, type = "o", lwd = 1, col = "black")
-
-
 data2len <- length(data2[,1])
 grid(nx = data2len, ny = (data2len/2), col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = F)
 
@@ -128,21 +124,51 @@ for (i in 1:length(srtd)) {
   x[i] <- grep(srtd[i], data4[,2])
 }
 
-
-# Define image size
-wd <- (length(data2[,1])/100)*1920
+# Create moving mean function for the next plot
+moving_fun <- function(x, w, FUN, ...) {
+  # x: a double vector
+  # w: the length of the window, i.e., the section of the vector selected to apply FUN
+  # FUN: a function that takes a vector and return a summarize value, e.g., mean, sum, etc.
+  # Given a double type vector apply a FUN over a moving window from left to the right, 
+  #    when a window boundary is not a legal section, i.e. lower_bound and i (upper bound) 
+  #    are not contained in the length of the vector, return a NA_real_
+  if (w < 1) {
+    stop("The length of the window 'w' must be greater than 0")
+  }
+  output <- x
+  for (i in 1:length(x)) {
+    # plus 1 because the index is inclusive with the upper_bound 'i'
+    lower_bound <- i - w + 1
+    if (lower_bound < 1) {
+      output[i] <- NA_real_
+    } else {
+      output[i] <- FUN(x[lower_bound:i, ...])
+    }
+  }
+  output
+}
 
 # Define image name and dimensions
-png('/home/oskar/01-workspace/00-temp/accu-chek-mobile/Outputs/24h-bg-graph.png', width = 1920, height = 1080)
+png('Outputs/24h-bg-graph.png', width = 1920, height = 1080)
 
-# Create plot
+# Create 24h plot
 plot(as_date(data4[x,2], origin = Sys.Date()), data4[x,3],
      xlab="Time of day", ylab="mmol/L", pch = as.numeric(data4[x,5]), cex = 2, yaxt = "n")
-legend(as_date(data4[x,2], origin = Sys.Date())[1], 10, legend=c("Other",
+
+legend(as_date(data4[x,2], origin = Sys.Date())[1], (max(data4[,3])*0.94), 
+                                                                 legend=c("Other",
                                                                  "Before meal", 
                                                                  "After meal", 
-                                                                 "Missing data"),
-       col=c("black", "black", "black", "black"), cex=1.2, pch = c(1, 2, 3, 0))
+                                                                 "Missing data",
+                                                                 "Moving average",
+                                                                 "Normal range"),
+       col=c("black", "black", "black", "black", "black", "red"), cex=1.2, lty = c(NA, NA, NA, NA, 1, 1), pch = c(1, 2, 3, 0, NA, NA))
+
+lines(as_date(data4[x,2], origin = Sys.Date()), moving_fun(as.numeric(data4[x,3]), 5, mean), type = "l", col = "black")
+
+abline(a = 0, b = 0, h = c(4,6), v = NULL, reg = NULL,
+       coef = NULL, untf = FALSE, col = "red")
+
 yscale2 <- seq(from = 1, to = upper[2], by = 0.2)
 axis(side = 2, at = yscale2)
 axis(side = 4, at = yscale2)
@@ -150,8 +176,24 @@ axis(side = 4, at = yscale2)
 # Write image to file
 dev.off()
 
+# Define image name and dimensions for histogram
+png('Outputs/bg-histogram.png', width = 1920, height = 1080)
 
+# Create histogram of bg values
+hist(data2[,3], breaks = 50, main = "Histogram of blood glucose values", 
+     xlab = "Blood glucose value", ylab = "Frequency", xaxt = "n", freq = F, equidist = F)
 
+# Create variable with histogram data
+histdata <- hist(data2[,3], plot = F)
+xscale2 <- seq(from = 1, to = (max(data2[,3])+1), by = 0.1)
+axis(1, at = xscale2)
+
+# Plot normal distribution curve
+curve(dnorm(x, mean=mean(data2[,3]), sd=sd(data2[,3])), add=TRUE, col="darkblue", lwd=2)
+
+# Put legend in histogram plot
+legend(mean(xscale2), 1, legend = "Normal distribution", lty = 1, col = "blue", cex = 2)
+dev.off()
 
 
 
