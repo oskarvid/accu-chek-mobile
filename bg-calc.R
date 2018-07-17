@@ -38,6 +38,10 @@ for (i in 1:datelen){
   split_date[[i]] = split_date[[i]]+1
 }
 
+# Estimate A1c, formula taken from https://www.glucosetracker.net/blog/how-to-calculate-your-a1c/
+# The data needs to be from the last 3 months to be somewhat accurate. This is only an estimation. 
+A1c <- ((2.59 + mean(data2[,3])) / 1.59)
+
 # Calculate dynamic png width, 100 values equals 1920x1080 size. Height is static.
 wd <- (length(data2[,1])/100)*1920
 
