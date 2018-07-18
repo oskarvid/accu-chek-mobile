@@ -168,7 +168,7 @@ legend(as_date(data4[x,2], origin = Sys.Date())[1], (max(data4[,3])*0.94),
                                                                  "Normal range"),
        col=c("black", "black", "black", "black", "black", "red"), cex=1.2, lty = c(NA, NA, NA, NA, 1, 1), pch = c(1, 2, 3, 0, NA, NA))
 
-lines(as_date(data4[x,2], origin = Sys.Date()), moving_fun(as.numeric(data4[x,3]), 5, mean), type = "l", col = "black")
+lines(as_date(data4[x,2], origin = Sys.Date()), moving_fun(as.numeric(data4[x,3]), 15, mean), type = "l", col = "black")
 
 abline(a = 0, b = 0, h = c(4,6), v = NULL, reg = NULL,
        coef = NULL, untf = FALSE, col = "red")
