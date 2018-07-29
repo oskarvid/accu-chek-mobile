@@ -53,9 +53,10 @@ wd <- (length(data2[,1])/100)*1920
 
 # Define image output directory and size
 png('Outputs/bg-graph.png', width = wd, height = 1080)
-adjustcolor(palette(c("black", "white", "green", "blue", "magenta")), alpha.f = 0.3)
+
 plot(data2[,3], type = "n", xlab="Date", ylab="mmol/L", xaxt="n", yaxt="n")
 
+# Create variable that colors the days gray and white
 colors1 <- c("#0000004D", "#FFFFFF4D")
 colors2 <- 0
 n=1
@@ -66,6 +67,7 @@ for (j in 1:200){
   }
 }
 
+# Create the colored areas for each day
 lower = 1
 upper = 1
 for (i in 1:length(table(as.Date(data2$V1, format="%d.%m.%Y")))) {
@@ -74,13 +76,18 @@ for (i in 1:length(table(as.Date(data2$V1, format="%d.%m.%Y")))) {
   lower = table(as.Date(data2$V1, format="%d.%m.%Y"))[[i]] + lower
 }
 
+# Draw the actual graph
 lines(data2[,3], pch=as.numeric(data2[,5]), cex = 1.2, type = "o", lwd = 1, col = "black")
+
+# Add grid
 data2len <- length(data2[,1])
 grid(nx = data2len, ny = (data2len/2), col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = F)
 
+# Calculate legend position
 upper <- range(data2[,3])
 position = 0.94*upper
 
+# Create the legend
 legend(-2, position[2], legend=c("Normal Range", 
                                  "Average", 
                                  "Median", 
@@ -91,6 +98,7 @@ legend(-2, position[2], legend=c("Normal Range",
        col=c("red", "blue", "green", "black", "black", "black", "black"), 
        lty=c(1, 1, 1, NA, NA, NA, NA), cex=1.2, bg = "white", pch = c(NA, NA, NA, 1, 2, 3, 0))
 
+# Print the dates on the bottom and the times on the top of the graph
 lower = 1
 for (i in 1:data2len) {
   
@@ -102,14 +110,20 @@ for (i in 1:data2len) {
   lower = lower+1
 }
 
+# print the y scales on the left and right side of the graph
 yscale2 <- seq(from = 1, to = upper[2], by = 0.2)
 axis(side = 2, at = yscale2)
 axis(side = 4, at = yscale2)
 
+# Print the normal range lines
 abline(a = 0, b = 0, h = c(4,6), v = NULL, reg = NULL,
        coef = NULL, untf = FALSE, col = "red")
+
+# Print the mean bg line
 abline(a = 0, b = 0, h = mean(data2[,3]), v = NULL, reg = NULL,
        coef = NULL, untf = FALSE, col = "blue")
+
+# Print the median bg line
 abline(a = 0, b = 0, h = median(data2[,3]), v = NULL, reg = NULL,
        coef = NULL, untf = FALSE, col = "green")
 
@@ -159,6 +173,7 @@ png('Outputs/24h-bg-graph.png', width = 1920, height = 1080)
 plot(as_date(data4[x,2], origin = Sys.Date()), data4[x,3],
      xlab="Time of day", ylab="mmol/L", pch = as.numeric(data4[x,5]), cex = 2, yaxt = "n")
 
+# Create legend
 legend(as_date(data4[x,2], origin = Sys.Date())[1], (max(data4[,3])*0.94), 
                                                                  legend=c("Other",
                                                                  "Before meal", 
@@ -168,11 +183,14 @@ legend(as_date(data4[x,2], origin = Sys.Date())[1], (max(data4[,3])*0.94),
                                                                  "Normal range"),
        col=c("black", "black", "black", "black", "black", "red"), cex=1.2, lty = c(NA, NA, NA, NA, 1, 1), pch = c(1, 2, 3, 0, NA, NA))
 
+# Print actual graph
 lines(as_date(data4[x,2], origin = Sys.Date()), moving_fun(as.numeric(data4[x,3]), 15, mean), type = "l", col = "black")
 
+# Print normal bg range
 abline(a = 0, b = 0, h = c(4,6), v = NULL, reg = NULL,
        coef = NULL, untf = FALSE, col = "red")
 
+# Print y scale of the left and right side of the graph
 yscale2 <- seq(from = 1, to = upper[2], by = 0.2)
 axis(side = 2, at = yscale2)
 axis(side = 4, at = yscale2)
@@ -200,9 +218,47 @@ legend(mean(xscale2), 1, legend = "Normal distribution", lty = 1, col = "blue", 
 dev.off()
 
 
+# Individual days plot
+# Set variables for loop
+upper <- range(data4[,3])
+yscale2 <- seq(from = 1, to = upper[2], by = 0.2)
+lower = 1
+upper = 0
 
 
+# Run loop to create plots
+for (i in 1:length(table(as.Date(data2$V1, format="%d.%m.%Y")))) {
+  upper = table(as.Date(data4$V1, format="%d.%m.%Y"))[[i]] + upper
 
+  # print to png, the .png suffix is missing here, it currently looks ugly if I add it because it become "filename-date-.png", I don't know how to get rid of the "-.png"  
+  png(paste('Outputs/DayPlot', data4[upper,1], sep = "-"), width = 1920, height = 1080)
 
+  # Create the plot
+  plot(as_date(data4[x,2], origin = Sys.Date()), data4[x,3],
+       xlab="Time of day", ylab="mmol/L", pch = as.numeric(data4[x,5]), cex = 2, type = "n", yaxt = "n", 
+       main = data4[upper,1])
 
+  # Draw the graph  
+  lines(as_date(data4[upper:lower,2], origin = Sys.Date()), data4[upper:lower,3], 
+        pch = as.numeric(data4[upper:lower,5]), type = "o")
+  
+  # Add normal range lines
+  abline(a = 0, b = 0, h = c(4,6), v = NULL, reg = NULL,
+         coef = NULL, untf = FALSE, col = "red")
+  lower = table(as.Date(data2$V1, format="%d.%m.%Y"))[[i]] + lower
+
+  # Add legend  
+  legend((par("usr")[1]*1.000001), (par("usr")[4]*0.98), 
+         legend=c("Other",
+                  "Before meal", 
+                  "After meal", 
+                  "Missing data",
+                  "Normal range"),
+         col=c("black", "black", "black", "black", "red"), cex=1.2, 
+         lty = c(NA, NA, NA, NA, 1), pch = c(1, 2, 3, 0, NA))
+
+  # Print y scale
+  axis(side = 2, at = yscale2)
+  dev.off()
+}
 

@@ -25,6 +25,6 @@ rule R:
 	input:
 		script = "bg-calc.R"
 	output:
-		"Outputs/bg-graph.png"
+		"Outputs/bg-graph.png",
 	script:
 		"{input.script}"
