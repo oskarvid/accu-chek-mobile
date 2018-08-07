@@ -1,5 +1,6 @@
 #install.packages("lubridate")
 library("lubridate")
+library("TTR")
 data2 <- read.table("Outputs/processed.tsv", header = F, sep="\t")
 #dim(data2)
 
@@ -38,10 +39,6 @@ for (i in 1:datelen){
   split_date[[i]] = split_date[[i]]+1
 }
 
-# Estimate A1c, formula taken from https://www.glucosetracker.net/blog/how-to-calculate-your-a1c/
-# The data needs to be from the last 3 months to be somewhat accurate. This is only an estimation. 
-A1c <- ((2.59 + mean(data2[,3])) / 1.59)
-
 # Calculate dynamic png width, 100 values equals 1920x1080 size. Height is static.
 wd <- (length(data2[,1])/100)*1920
 
@@ -79,6 +76,9 @@ for (i in 1:length(table(as.Date(data2$V1, format="%d.%m.%Y")))) {
 # Draw the actual graph
 lines(data2[,3], pch=as.numeric(data2[,5]), cex = 1.2, type = "o", lwd = 1, col = "black")
 
+# Draw exponential moving average graph
+lines(EMA(data2[,3], n = 10), cex = 1.2, type = "l", lwd = 1, col = "purple")
+
 # Add grid
 data2len <- length(data2[,1])
 grid(nx = data2len, ny = (data2len/2), col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = F)
@@ -91,12 +91,13 @@ position = 0.94*upper
 legend(-2, position[2], legend=c("Normal Range", 
                                  "Average", 
                                  "Median", 
+                                 "Exponential moving average, n = 10",
                                  "Other",
                                  "Before meal", 
                                  "After meal", 
                                  "Missing data"),
-       col=c("red", "blue", "green", "black", "black", "black", "black"), 
-       lty=c(1, 1, 1, NA, NA, NA, NA), cex=1.2, bg = "white", pch = c(NA, NA, NA, 1, 2, 3, 0))
+       col=c("red", "blue", "green", "purple", "black", "black", "black", "black"), 
+       lty=c(1, 1, 1, 1, NA, NA, NA, NA), cex=1.2, bg = "white", pch = c(NA, NA, NA, NA, 1, 2, 3, 0))
 
 # Print the dates on the bottom and the times on the top of the graph
 lower = 1
@@ -142,56 +143,44 @@ for (i in 1:length(srtd)) {
   x[i] <- grep(srtd[i], data4[,2])
 }
 
-# Create moving mean function for the next plot
-moving_fun <- function(x, w, FUN, ...) {
-  # x: a double vector
-  # w: the length of the window, i.e., the section of the vector selected to apply FUN
-  # FUN: a function that takes a vector and return a summarize value, e.g., mean, sum, etc.
-  # Given a double type vector apply a FUN over a moving window from left to the right, 
-  #    when a window boundary is not a legal section, i.e. lower_bound and i (upper bound) 
-  #    are not contained in the length of the vector, return a NA_real_
-  if (w < 1) {
-    stop("The length of the window 'w' must be greater than 0")
-  }
-  output <- x
-  for (i in 1:length(x)) {
-    # plus 1 because the index is inclusive with the upper_bound 'i'
-    lower_bound <- i - w + 1
-    if (lower_bound < 1) {
-      output[i] <- NA_real_
-    } else {
-      output[i] <- FUN(x[lower_bound:i, ...])
-    }
-  }
-  output
-}
-
 # Define image name and dimensions
 png('Outputs/24h-bg-graph.png', width = 1920, height = 1080)
 
+A1c <- ((2.59 + mean(data2[,3])) / 1.59)
+
 # Create 24h plot
-plot(as_date(data4[x,2], origin = Sys.Date()), data4[x,3],
+plot(as_date(data4[x,2], origin = Sys.Date()), data4[x,3], 
+     main = "*A1c is only a rough estimate, don't rely on it for diagnostic purposes",
      xlab="Time of day", ylab="mmol/L", pch = as.numeric(data4[x,5]), cex = 2, yaxt = "n")
 
 # Create legend
-legend(as_date(data4[x,2], origin = Sys.Date())[1], (max(data4[,3])*0.94), 
+legend(as_date(data4[x,2], origin = Sys.Date())[1], (max(data4[,3])*0.94),
                                                                  legend=c("Other",
-                                                                 "Before meal", 
-                                                                 "After meal", 
+                                                                 "Before meal",
+                                                                 "After meal",
                                                                  "Missing data",
-                                                                 "Moving average",
-                                                                 "Normal range"),
-       col=c("black", "black", "black", "black", "black", "red"), cex=1.2, lty = c(NA, NA, NA, NA, 1, 1), pch = c(1, 2, 3, 0, NA, NA))
+                                                                 "Exponential moving average, n = 15",
+                                                                 "Normal range",
+                                                                 "Estimated A1c*"),
+       col=c("black", "black", "black", "black", "black", "red", "blue"), cex=1.2, 
+       lty = c(NA, NA, NA, NA, 1, 1, 1), pch = c(1, 2, 3, 0, NA, NA, NA))
 
 # Print actual graph
-lines(as_date(data4[x,2], origin = Sys.Date()), moving_fun(as.numeric(data4[x,3]), 15, mean), type = "l", col = "black")
+lines(as_date(data4[x,2], origin = Sys.Date()), EMA(data4[x,3], n=15), type = "l", col = "black")
+
+
+# Estimate A1c, formula taken from https://www.glucosetracker.net/blog/how-to-calculate-your-a1c/
+# The data needs to be from the last 3 months to be somewhat accurate. This is only an estimation. 
+
+abline(a = 0, b = 0, h = A1c, v = NULL, reg = NULL,
+       coef = NULL, untf = FALSE, col = "blue")
 
 # Print normal bg range
 abline(a = 0, b = 0, h = c(4,6), v = NULL, reg = NULL,
        coef = NULL, untf = FALSE, col = "red")
 
 # Print y scale of the left and right side of the graph
-yscale2 <- seq(from = 1, to = upper[2], by = 0.2)
+yscale2 <- seq(from = 1, to = upper[2], by = 0.1)
 axis(side = 2, at = yscale2)
 axis(side = 4, at = yscale2)
 
