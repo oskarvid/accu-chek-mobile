@@ -220,7 +220,7 @@ for (i in 1:length(table(as.Date(data2$V1, format="%d.%m.%Y")))) {
   upper = table(as.Date(data4$V1, format="%d.%m.%Y"))[[i]] + upper
 
   # print to png, the .png suffix is missing here, it currently looks ugly if I add it because it become "filename-date-.png", I don't know how to get rid of the "-.png"  
-  png(paste('Outputs/DayPlot', data4[upper,1], sep = "-"), width = 1920, height = 1080)
+  png(paste('Outputs/DayPlot', i, data4[upper,1], sep = "-"), width = 1920, height = 1080)
 
   # Create the plot
   plot(as_date(data4[x,2], origin = Sys.Date()), data4[x,3],
