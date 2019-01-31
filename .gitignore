@@ -1,8 +1,10 @@
-Outputs/bg-graph.png
+Outputs/*.png
 Outputs/RawData.csv
 Outputs/processed.tsv
 Inputs/Diary*.csv
 Inputs/test.csv
+Diary*.csv
 import.sh
 temp.r
 .snakemake/*
+.Rhistory
