@@ -46,6 +46,10 @@ for (i in 1:datelen){
   split_date[[i]] = split_date[[i]]+1
 }
 
+len <- length(data2[,2])
+data2[,3] <- round(rnorm(len, m = 5, sd = 1), digits = 1)
+data2[,5] <- round(runif(len, 0, 3), digits = 0)
+
 lel <- as.data.frame(dmy(as.character(data2[,1])))
 lel[,2] <- hm(data2[,2])
 #lel[c(387:566),2] <- hm(data2[c(387:566),2]) - hours(1)
@@ -56,10 +60,18 @@ xts1 <- to.period(xts1, period = "days")
 
 png('Outputs/candle-chart.png', width = 1920, height = 1080)
 candleChart(xts1, up.col = "black", dn.col = "red", theme = "white")
-addSMA(n = 5, col = "purple")
-addMACD()
-addVolatility()
-addBBands()
+if (dim(xts1)[1] > 4){
+  addSMA(n = 5, col = "purple") 
+}
+if (length(data2[,1]) > 162){
+  addMACD()
+}
+if (length(data2[,1]) > 89){
+  addBBands()
+}
+if (length(data2[,1]) > 56){
+  addVolatility()
+}
 dev.off()
 
 ######################################################
@@ -119,7 +131,10 @@ for (i in 1:length(table(as.Date(data2$V1, format="%d.%m.%Y")))) {
 lines(data2[,3], pch=as.numeric(data2[,5]), cex = 1.2, type = "o", lwd = 1, col = "black")
 
 # Draw exponential moving average graph
-lines(EMA(data2[,3], n = 15), cex = 1.2, type = "l", lwd = 1, col = "purple")
+## The EMA functions seems to need 163 data points to function, so it will only get drawn if there are at least 163 points
+if (length(data2[,1]) > 162){
+  lines(EMA(data2[,3], n = 15), cex = 1.2, type = "l", lwd = 1, col = "purple")
+}
 
 # Add grid
 data2len <- length(data2[,1])
@@ -133,7 +148,7 @@ position = 0.94*upper
 legend(-2, position[2], legend=c("Normal Range", 
                                  "Average", 
                                  "Median", 
-                                 "Exponential moving average, n = 10",
+                                 "**Exponential moving average, n = 15",
                                  "Other",
                                  "Before meal", 
                                  "After meal", 
@@ -208,7 +223,9 @@ legend(as_date(data4[x,2], origin = Sys.Date())[1], (max(data4[,3])*0.94),
        lty = c(NA, NA, NA, NA, 1, 1, 1), pch = c(1, 2, 3, 0, NA, NA, NA))
 
 # Print actual graph
-lines(as_date(data4[x,2], origin = Sys.Date()), SMA(data4[x,3], n=35), type = "l", col = "black")
+if (length(data4[,3]) > 35){
+  lines(as_date(data4[x,2], origin = Sys.Date()), SMA(data4[x,3], n=35), type = "l", col = "black")
+}
 
 
 # Estimate A1c, formula taken from https://www.glucosetracker.net/blog/how-to-calculate-your-a1c/
@@ -252,8 +269,9 @@ legend(as_date(data4[x,2], origin = Sys.Date())[1], (max(data4[,3])*0.94),
        lty = c(NA, NA, NA, NA, 1, 1, 1), pch = c(1, 2, 3, 0, NA, NA, NA))
 
 # Print actual graph
-lines(as_date(data4[x,2], origin = Sys.Date()), SMA(data4[x,3], n=35), type = "l", col = "black")
-
+if (length(data4[,2]) > 35){
+  lines(as_date(data4[x,2], origin = Sys.Date()), SMA(data4[x,3], n=35), type = "l", col = "black")
+}
 
 # Estimate A1c, formula taken from https://www.glucosetracker.net/blog/how-to-calculate-your-a1c/
 # The data needs to be from the last 3 months to be somewhat accurate. This is only an estimation. 
