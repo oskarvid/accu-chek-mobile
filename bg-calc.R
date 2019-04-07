@@ -46,9 +46,10 @@ for (i in 1:datelen){
   split_date[[i]] = split_date[[i]]+1
 }
 
-len <- length(data2[,2])
-data2[,3] <- round(rnorm(len, m = 5, sd = 1), digits = 1)
-data2[,5] <- round(runif(len, 0, 3), digits = 0)
+## Uncomment to generate random data
+#len <- length(data2[,2])
+#data2[,3] <- round(rnorm(len, m = 5, sd = 1), digits = 1)
+#data2[,5] <- round(runif(len, 0, 3), digits = 0)
 
 lel <- as.data.frame(dmy(as.character(data2[,1])))
 lel[,2] <- hm(data2[,2])
