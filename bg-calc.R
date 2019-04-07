@@ -1,6 +1,13 @@
 #install.packages("lubridate")
 library("lubridate")
 library("TTR")
+library("xts")
+if (!require("quantmod")) {
+  install.packages("quantmod")
+  library(quantmod)
+}
+
+#setwd("/home/oskar/01-workspace/00-temp/accu-chek-mobile")
 data2 <- read.table("Outputs/processed.tsv", header = F, sep="\t")
 #dim(data2)
 
@@ -38,6 +45,41 @@ datelen <- length(split_date)
 for (i in 1:datelen){
   split_date[[i]] = split_date[[i]]+1
 }
+
+lel <- as.data.frame(dmy(as.character(data2[,1])))
+lel[,2] <- hm(data2[,2])
+#lel[c(387:566),2] <- hm(data2[c(387:566),2]) - hours(1)
+lel[,2] <- format(Sys.Date() + lel[,2], "%H:%M")
+
+xts1 <- xts(data2[,3], order.by = lel[,1])
+xts1 <- to.period(xts1, period = "days")
+
+png('Outputs/candle-chart.png', width = 1920, height = 1080)
+candleChart(xts1, up.col = "black", dn.col = "red", theme = "white")
+addSMA(n = 5, col = "purple")
+addMACD()
+addVolatility()
+addBBands()
+dev.off()
+
+######################################################
+# I tried to make a for loop for these graphs but it wouldn't work, fortunately hard coding will always be there for you in times of need <3
+png('Outputs/all-first-values-per-day.png', width = 1920, height = 1080)
+plot(xts1[,1], main = "First value per day")
+dev.off()
+
+png('Outputs/all-highest-values-per-day.png', width = 1920, height = 1080)
+plot(xts1[,2], main = "Highest value per day")
+dev.off()
+
+png('Outputs/all-lowest-values-per-day.png', width = 1920, height = 1080)
+plot(xts1[,3], main = "Lowest value per day")
+dev.off()
+
+png('Outputs/all-last-values-per-day.png', width = 1920, height = 1080)
+plot(xts1[,4], main = "last value per day")
+dev.off()
+######################################################
 
 # Calculate dynamic png width, 100 values equals 1920x1080 size. Height is static.
 wd <- (length(data2[,1])/100)*1920
@@ -77,7 +119,7 @@ for (i in 1:length(table(as.Date(data2$V1, format="%d.%m.%Y")))) {
 lines(data2[,3], pch=as.numeric(data2[,5]), cex = 1.2, type = "o", lwd = 1, col = "black")
 
 # Draw exponential moving average graph
-lines(EMA(data2[,3], n = 10), cex = 1.2, type = "l", lwd = 1, col = "purple")
+lines(EMA(data2[,3], n = 15), cex = 1.2, type = "l", lwd = 1, col = "purple")
 
 # Add grid
 data2len <- length(data2[,1])
@@ -105,9 +147,9 @@ for (i in 1:data2len) {
   
   text(c(lower:lower), par("usr")[3], labels = data2[,1][i], srt = 45,
        adj = c(1.1,1.1), xpd = TRUE, cex=0.8, col = "black")
-  text(c(lower:lower), par("usr")[4], labels = data2[,2][i], srt = 45, 
+  text(c(lower:lower), par("usr")[4], labels = lel[,2][i], srt = 45, 
        adj = c(0.01,0.01), xpd = TRUE, cex=0.8, col = "black")
-  
+
   lower = lower+1
 }
 
@@ -132,7 +174,7 @@ dev.off()
 
 ## Make second plot
 data4 <- data2
-data4[,2] <- seconds(hm(data4[,2]))
+data4[,2] <- seconds(hm(lel[,2]))
 
 # Sort data
 srtd <- sort(data4[,2])
@@ -151,22 +193,66 @@ A1c <- ((2.59 + mean(data2[,3])) / 1.59)
 # Create 24h plot
 plot(as_date(data4[x,2], origin = Sys.Date()), data4[x,3], 
      main = "*A1c is only a rough estimate, don't rely on it for diagnostic purposes",
-     xlab="Time of day", ylab="mmol/L", pch = as.numeric(data4[x,5]), cex = 2, yaxt = "n")
+     xlab="Time of day", ylab="mmol/L", pch = as.numeric(data4[x,5]), cex = 2, yaxt = "n", type = "n")
 
 # Create legend
 legend(as_date(data4[x,2], origin = Sys.Date())[1], (max(data4[,3])*0.94),
-                                                                 legend=c("Other",
-                                                                 "Before meal",
-                                                                 "After meal",
-                                                                 "Missing data",
-                                                                 "Exponential moving average, n = 15",
-                                                                 "Normal range",
-                                                                 "Estimated A1c*"),
+       legend=c("Other",
+                "Before meal",
+                "After meal",
+                "Missing data",
+                "Simple moving average, n = 35",
+                "Normal range",
+                "Estimated A1c*"),
        col=c("black", "black", "black", "black", "black", "red", "blue"), cex=1.2, 
        lty = c(NA, NA, NA, NA, 1, 1, 1), pch = c(1, 2, 3, 0, NA, NA, NA))
 
 # Print actual graph
-lines(as_date(data4[x,2], origin = Sys.Date()), EMA(data4[x,3], n=15), type = "l", col = "black")
+lines(as_date(data4[x,2], origin = Sys.Date()), SMA(data4[x,3], n=35), type = "l", col = "black")
+
+
+# Estimate A1c, formula taken from https://www.glucosetracker.net/blog/how-to-calculate-your-a1c/
+# The data needs to be from the last 3 months to be somewhat accurate. This is only an estimation. 
+
+abline(a = 0, b = 0, h = A1c, v = NULL, reg = NULL,
+       coef = NULL, untf = FALSE, col = "blue")
+
+# Print normal bg range
+abline(a = 0, b = 0, h = c(4,6), v = NULL, reg = NULL,
+       coef = NULL, untf = FALSE, col = "red")
+
+# Print y scale of the left and right side of the graph
+yscale2 <- seq(from = 1, to = upper[2], by = 0.1)
+axis(side = 2, at = yscale2)
+axis(side = 4, at = yscale2)
+
+# Write image to file
+dev.off()
+
+# Define image name and dimensions
+png('Outputs/24h-bg-graph-2.png', width = 1920, height = 1080)
+
+A1c <- ((2.59 + mean(data2[,3])) / 1.59)
+
+# Create 24h plot
+plot(as_date(data4[x,2], origin = Sys.Date()), data4[x,3], 
+     main = "*A1c is only a rough estimate, don't rely on it for diagnostic purposes",
+     xlab="Time of day", ylab="mmol/L", pch = as.numeric(data4[x,5]), cex = 2, yaxt = "n")
+
+# Create legend
+legend(as_date(data4[x,2], origin = Sys.Date())[1], (max(data4[,3])*0.94),
+       legend=c("Other",
+                "Before meal",
+                "After meal",
+                "Missing data",
+                "Simple moving average, n = 35",
+                "Normal range",
+                "Estimated A1c*"),
+       col=c("black", "black", "black", "black", "black", "red", "blue"), cex=1.2, 
+       lty = c(NA, NA, NA, NA, 1, 1, 1), pch = c(1, 2, 3, 0, NA, NA, NA))
+
+# Print actual graph
+lines(as_date(data4[x,2], origin = Sys.Date()), SMA(data4[x,3], n=35), type = "l", col = "black")
 
 
 # Estimate A1c, formula taken from https://www.glucosetracker.net/blog/how-to-calculate-your-a1c/
@@ -250,4 +336,3 @@ for (i in 1:length(table(as.Date(data2$V1, format="%d.%m.%Y")))) {
   axis(side = 2, at = yscale2)
   dev.off()
 }
-
