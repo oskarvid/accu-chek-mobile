@@ -7,7 +7,7 @@ if (!require("quantmod")) {
   library(quantmod)
 }
 
-#setwd("/home/oskar/01-workspace/00-temp/accu-chek-mobile")
+setwd("/home/oskar/01-workspace/00-temp/accu-chek-mobile")
 data2 <- read.table("Outputs/processed.tsv", header = F, sep="\t")
 #dim(data2)
 
@@ -50,10 +50,10 @@ for (i in 1:datelen){
 #len <- length(data2[,2])
 #data2[,3] <- round(rnorm(len, m = 5, sd = 1), digits = 1)
 #data2[,5] <- round(runif(len, 0, 3), digits = 0)
+data2 <- data2[c(387:566)]
 
 lel <- as.data.frame(dmy(as.character(data2[,1])))
-lel[,2] <- hm(data2[,2])
-#lel[c(387:566),2] <- hm(data2[c(387:566),2]) - hours(1)
+lel[,2] <- hm(data2[,2]) - hours(1)
 lel[,2] <- format(Sys.Date() + lel[,2], "%H:%M")
 
 xts1 <- xts(data2[,3], order.by = lel[,1])
@@ -163,7 +163,7 @@ for (i in 1:data2len) {
   
   text(c(lower:lower), par("usr")[3], labels = data2[,1][i], srt = 45,
        adj = c(1.1,1.1), xpd = TRUE, cex=0.8, col = "black")
-  text(c(lower:lower), par("usr")[4], labels = lel[,2][i], srt = 45, 
+  text(c(lower:lower), par("usr")[4], labels = data2[,2][i], srt = 45, 
        adj = c(0.01,0.01), xpd = TRUE, cex=0.8, col = "black")
 
   lower = lower+1
