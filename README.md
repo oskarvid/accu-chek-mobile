@@ -1,4 +1,5 @@
 # accu-chek-mobile
+[![Travis Build Status](https://img.shields.io/travis/oskarvid/accu-check-mobile.svg?logo=travis)](https://travis-ci.org/oskarvid/accu-check-mobile)  
 For analysis of blood glucose data from an Accu-Chek Mobile.
 
 ## Features
